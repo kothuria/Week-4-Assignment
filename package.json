@@ -1,42 +1,27 @@
 {
-  "name": "deepmerge",
-  "description": "A library for deep (recursive) merging of Javascript objects",
-  "keywords": [
-    "merge",
-    "deep",
-    "extend",
-    "copy",
-    "clone",
-    "recursive"
+  "author": "Felix Geisendörfer <felix@debuggable.com> (http://debuggable.com/)",
+  "contributors": [
+    "Mike Atkins <apeherder@gmail.com>"
   ],
-  "version": "4.3.1",
-  "homepage": "https://github.com/TehShrike/deepmerge",
+  "name": "delayed-stream",
+  "description": "Buffers events from a stream until you are ready to handle them.",
+  "license": "MIT",
+  "version": "1.0.0",
+  "homepage": "https://github.com/felixge/node-delayed-stream",
   "repository": {
     "type": "git",
-    "url": "git://github.com/TehShrike/deepmerge.git"
+    "url": "git://github.com/felixge/node-delayed-stream.git"
   },
-  "main": "dist/cjs.js",
+  "main": "./lib/delayed_stream",
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=0.4.0"
   },
   "scripts": {
-    "build": "rollup -c",
-    "test": "npm run build && tape test/*.js && jsmd readme.md && npm run test:typescript",
-    "test:typescript": "tsc --noEmit test/typescript.ts && ts-node test/typescript.ts",
-    "size": "npm run build && uglifyjs --compress --mangle -- ./dist/umd.js | gzip -c | wc -c"
+    "test": "make test"
   },
+  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^8.10.54",
-    "is-mergeable-object": "1.1.0",
-    "is-plain-object": "^5.0.0",
-    "jsmd": "^1.0.2",
-    "rollup": "^1.23.1",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "tape": "^4.11.0",
-    "ts-node": "7.0.1",
-    "typescript": "=2.2.2",
-    "uglify-js": "^3.6.1"
-  },
-  "license": "MIT"
+    "fake": "0.2.0",
+    "far": "0.0.1"
+  }
 }
