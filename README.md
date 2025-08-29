@@ -1,4 +1,4 @@
-# math-intrinsics <sup>[![Version Badge][npm-version-svg]][package-url]</sup>
+# gopd <sup>[![Version Badge][npm-version-svg]][package-url]</sup>
 
 [![github actions][actions-image]][actions-url]
 [![coverage][codecov-image]][codecov-url]
@@ -7,44 +7,34 @@
 
 [![npm badge][npm-badge-png]][package-url]
 
-ES Math-related intrinsics and helpers, robustly cached.
+`Object.getOwnPropertyDescriptor`, but accounts for IE's broken implementation.
 
- - `abs`
- - `floor`
- - `isFinite`
- - `isInteger`
- - `isNaN`
- - `isNegativeZero`
- - `max`
- - `min`
- - `mod`
- - `pow`
- - `round`
- - `sign`
- - `constants/maxArrayLength`
- - `constants/maxSafeInteger`
- - `constants/maxValue`
+## Usage
 
+```javascript
+var gOPD = require('gopd');
+var assert = require('assert');
 
-## Tests
-Simply clone the repo, `npm install`, and run `npm test`
+if (gOPD) {
+	assert.equal(typeof gOPD, 'function', 'descriptors supported');
+	// use gOPD like Object.getOwnPropertyDescriptor here
+} else {
+	assert.ok(!gOPD, 'descriptors not supported');
+}
+```
 
-## Security
-
-Please email [@ljharb](https://github.com/ljharb) or see https://tidelift.com/security if you have a potential security vulnerability to report.
-
-[package-url]: https://npmjs.org/package/math-intrinsics
-[npm-version-svg]: https://versionbadg.es/es-shims/math-intrinsics.svg
-[deps-svg]: https://david-dm.org/es-shims/math-intrinsics.svg
-[deps-url]: https://david-dm.org/es-shims/math-intrinsics
-[dev-deps-svg]: https://david-dm.org/es-shims/math-intrinsics/dev-status.svg
-[dev-deps-url]: https://david-dm.org/es-shims/math-intrinsics#info=devDependencies
-[npm-badge-png]: https://nodei.co/npm/math-intrinsics.png?downloads=true&stars=true
-[license-image]: https://img.shields.io/npm/l/math-intrinsics.svg
+[package-url]: https://npmjs.org/package/gopd
+[npm-version-svg]: https://versionbadg.es/ljharb/gopd.svg
+[deps-svg]: https://david-dm.org/ljharb/gopd.svg
+[deps-url]: https://david-dm.org/ljharb/gopd
+[dev-deps-svg]: https://david-dm.org/ljharb/gopd/dev-status.svg
+[dev-deps-url]: https://david-dm.org/ljharb/gopd#info=devDependencies
+[npm-badge-png]: https://nodei.co/npm/gopd.png?downloads=true&stars=true
+[license-image]: https://img.shields.io/npm/l/gopd.svg
 [license-url]: LICENSE
-[downloads-image]: https://img.shields.io/npm/dm/es-object.svg
-[downloads-url]: https://npm-stat.com/charts.html?package=math-intrinsics
-[codecov-image]: https://codecov.io/gh/es-shims/math-intrinsics/branch/main/graphs/badge.svg
-[codecov-url]: https://app.codecov.io/gh/es-shims/math-intrinsics/
-[actions-image]: https://img.shields.io/endpoint?url=https://github-actions-badge-u3jn4tfpocch.runkit.sh/es-shims/math-intrinsics
-[actions-url]: https://github.com/es-shims/math-intrinsics/actions
+[downloads-image]: https://img.shields.io/npm/dm/gopd.svg
+[downloads-url]: https://npm-stat.com/charts.html?package=gopd
+[codecov-image]: https://codecov.io/gh/ljharb/gopd/branch/main/graphs/badge.svg
+[codecov-url]: https://app.codecov.io/gh/ljharb/gopd/
+[actions-image]: https://img.shields.io/endpoint?url=https://github-actions-badge-u3jn4tfpocch.runkit.sh/ljharb/gopd
+[actions-url]: https://github.com/ljharb/gopd/actions

@@ -4,12 +4,12 @@
 	"extends": "@ljharb",
 
 	"rules": {
-		"eqeqeq": ["error", "allow-null"],
-		"id-length": "off",
-		"new-cap": ["error", {
+		"func-style": [2, "declaration"],
+		"id-length": 0,
+		"multiline-comment-style": 0,
+		"new-cap": [2, {
 			"capIsNewExceptions": [
-				"RequireObjectCoercible",
-				"ToObject",
+				"GetIntrinsic",
 			],
 		}],
 	},
