@@ -1,106 +1,63 @@
-var defaultIsMergeableObject = require('is-mergeable-object')
+'use strict';
 
-function emptyTarget(val) {
-	return Array.isArray(val) ? [] : {}
-}
+var callBind = require('../');
+var hasStrictMode = require('has-strict-mode')();
+var forEach = require('for-each');
+var inspect = require('object-inspect');
+var v = require('es-value-fixtures');
 
-function cloneUnlessOtherwiseSpecified(value, options) {
-	return (options.clone !== false && options.isMergeableObject(value))
-		? deepmerge(emptyTarget(value), value, options)
-		: value
-}
+var test = require('tape');
 
-function defaultArrayMerge(target, source, options) {
-	return target.concat(source).map(function(element) {
-		return cloneUnlessOtherwiseSpecified(element, options)
-	})
-}
+test('callBindBasic', function (t) {
+	forEach(v.nonFunctions, function (nonFunction) {
+		t['throws'](
+			// @ts-expect-error
+			function () { callBind([nonFunction]); },
+			TypeError,
+			inspect(nonFunction) + ' is not a function'
+		);
+	});
 
-function getMergeFunction(key, options) {
-	if (!options.customMerge) {
-		return deepmerge
-	}
-	var customMerge = options.customMerge(key)
-	return typeof customMerge === 'function' ? customMerge : deepmerge
-}
+	var sentinel = { sentinel: true };
+	/** @type {<T, A extends number, B extends number>(this: T, a: A, b: B) => [T | undefined, A, B]} */
+	var func = function (a, b) {
+		// eslint-disable-next-line no-invalid-this
+		return [!hasStrictMode && this === global ? undefined : this, a, b];
+	};
+	t.equal(func.length, 2, 'original function length is 2');
 
-function getEnumerableOwnPropertySymbols(target) {
-	return Object.getOwnPropertySymbols
-		? Object.getOwnPropertySymbols(target).filter(function(symbol) {
-			return Object.propertyIsEnumerable.call(target, symbol)
-		})
-		: []
-}
+	/** type {(thisArg: unknown, a: number, b: number) => [unknown, number, number]} */
+	var bound = callBind([func]);
+	/** type {((a: number, b: number) => [typeof sentinel, typeof a, typeof b])} */
+	var boundR = callBind([func, sentinel]);
+	/** type {((b: number) => [typeof sentinel, number, typeof b])} */
+	var boundArg = callBind([func, sentinel, /** @type {const} */ (1)]);
 
-function getKeys(target) {
-	return Object.keys(target).concat(getEnumerableOwnPropertySymbols(target))
-}
+	// @ts-expect-error
+	t.deepEqual(bound(), [undefined, undefined, undefined], 'bound func with no args');
 
-function propertyIsOnObject(object, property) {
-	try {
-		return property in object
-	} catch(_) {
-		return false
-	}
-}
+	// @ts-expect-error
+	t.deepEqual(func(), [undefined, undefined, undefined], 'unbound func with too few args');
+	// @ts-expect-error
+	t.deepEqual(bound(1, 2), [hasStrictMode ? 1 : Object(1), 2, undefined], 'bound func too few args');
+	// @ts-expect-error
+	t.deepEqual(boundR(), [sentinel, undefined, undefined], 'bound func with receiver, with too few args');
+	// @ts-expect-error
+	t.deepEqual(boundArg(), [sentinel, 1, undefined], 'bound func with receiver and arg, with too few args');
 
-// Protects from prototype poisoning and unexpected merging up the prototype chain.
-function propertyIsUnsafe(target, key) {
-	return propertyIsOnObject(target, key) // Properties are safe to merge if they don't exist in the target yet,
-		&& !(Object.hasOwnProperty.call(target, key) // unsafe if they exist up the prototype chain,
-			&& Object.propertyIsEnumerable.call(target, key)) // and also unsafe if they're nonenumerable.
-}
+	t.deepEqual(func(1, 2), [undefined, 1, 2], 'unbound func with right args');
+	t.deepEqual(bound(1, 2, 3), [hasStrictMode ? 1 : Object(1), 2, 3], 'bound func with right args');
+	t.deepEqual(boundR(1, 2), [sentinel, 1, 2], 'bound func with receiver, with right args');
+	t.deepEqual(boundArg(2), [sentinel, 1, 2], 'bound func with receiver and arg, with right arg');
 
-function mergeObject(target, source, options) {
-	var destination = {}
-	if (options.isMergeableObject(target)) {
-		getKeys(target).forEach(function(key) {
-			destination[key] = cloneUnlessOtherwiseSpecified(target[key], options)
-		})
-	}
-	getKeys(source).forEach(function(key) {
-		if (propertyIsUnsafe(target, key)) {
-			return
-		}
+	// @ts-expect-error
+	t.deepEqual(func(1, 2, 3), [undefined, 1, 2], 'unbound func with too many args');
+	// @ts-expect-error
+	t.deepEqual(bound(1, 2, 3, 4), [hasStrictMode ? 1 : Object(1), 2, 3], 'bound func with too many args');
+	// @ts-expect-error
+	t.deepEqual(boundR(1, 2, 3), [sentinel, 1, 2], 'bound func with receiver, with too many args');
+	// @ts-expect-error
+	t.deepEqual(boundArg(2, 3), [sentinel, 1, 2], 'bound func with receiver and arg, with too many args');
 
-		if (propertyIsOnObject(target, key) && options.isMergeableObject(source[key])) {
-			destination[key] = getMergeFunction(key, options)(target[key], source[key], options)
-		} else {
-			destination[key] = cloneUnlessOtherwiseSpecified(source[key], options)
-		}
-	})
-	return destination
-}
-
-function deepmerge(target, source, options) {
-	options = options || {}
-	options.arrayMerge = options.arrayMerge || defaultArrayMerge
-	options.isMergeableObject = options.isMergeableObject || defaultIsMergeableObject
-	// cloneUnlessOtherwiseSpecified is added to `options` so that custom arrayMerge()
-	// implementations can use it. The caller may not replace it.
-	options.cloneUnlessOtherwiseSpecified = cloneUnlessOtherwiseSpecified
-
-	var sourceIsArray = Array.isArray(source)
-	var targetIsArray = Array.isArray(target)
-	var sourceAndTargetTypesMatch = sourceIsArray === targetIsArray
-
-	if (!sourceAndTargetTypesMatch) {
-		return cloneUnlessOtherwiseSpecified(source, options)
-	} else if (sourceIsArray) {
-		return options.arrayMerge(target, source, options)
-	} else {
-		return mergeObject(target, source, options)
-	}
-}
-
-deepmerge.all = function deepmergeAll(array, options) {
-	if (!Array.isArray(array)) {
-		throw new Error('first argument should be an array')
-	}
-
-	return array.reduce(function(prev, next) {
-		return deepmerge(prev, next, options)
-	}, {})
-}
-
-module.exports = deepmerge
+	t.end();
+});
