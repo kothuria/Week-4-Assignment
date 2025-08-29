@@ -1,0 +1,3 @@
+PNR,Passenger,Origin,Destination,Fare,Status,Reason
+EF34GH,,BLR,BLR,120.0,PENDING,blank Passenger|same Origin/Destination
+IJ56KL,Rahul Mehta,MAA,HYD,-10.0,CANCELLED,negative Fare
