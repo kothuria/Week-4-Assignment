@@ -1,233 +1,108 @@
-# asynckit [![NPM Module](https://img.shields.io/npm/v/asynckit.svg?style=flat)](https://www.npmjs.com/package/asynckit)
+[![BuildStatus](https://travis-ci.com/sendgrid/sendgrid-nodejs.svg?branch=main)](https://travis-ci.com/sendgrid/sendgrid-nodejs)
+[![npm version](https://badge.fury.io/js/%40sendgrid%2Fclient.svg)](https://www.npmjs.com/org/sendgrid)
 
-Minimal async jobs utility library, with streams support.
+**This package is part of a monorepo, please see [this README](https://github.com/sendgrid/sendgrid-nodejs/blob/main/README.md) for details.**
 
-[![PhantomJS Build](https://img.shields.io/travis/alexindigo/asynckit/v0.4.0.svg?label=browser&style=flat)](https://travis-ci.org/alexindigo/asynckit)
-[![Linux Build](https://img.shields.io/travis/alexindigo/asynckit/v0.4.0.svg?label=linux:0.12-6.x&style=flat)](https://travis-ci.org/alexindigo/asynckit)
-[![Windows Build](https://img.shields.io/appveyor/ci/alexindigo/asynckit/v0.4.0.svg?label=windows:0.12-6.x&style=flat)](https://ci.appveyor.com/project/alexindigo/asynckit)
+# Mail Service for the SendGrid v3 Web API
+This is a dedicated service for interaction with the mail endpoint of the [SendGrid v3 API](https://sendgrid.com/docs/api-reference/).
 
-[![Coverage Status](https://img.shields.io/coveralls/alexindigo/asynckit/v0.4.0.svg?label=code+coverage&style=flat)](https://coveralls.io/github/alexindigo/asynckit?branch=master)
-[![Dependency Status](https://img.shields.io/david/alexindigo/asynckit/v0.4.0.svg?style=flat)](https://david-dm.org/alexindigo/asynckit)
-[![bitHound Overall Score](https://www.bithound.io/github/alexindigo/asynckit/badges/score.svg)](https://www.bithound.io/github/alexindigo/asynckit)
+# Installation
 
-<!-- [![Readme](https://img.shields.io/badge/readme-tested-brightgreen.svg?style=flat)](https://www.npmjs.com/package/reamde) -->
+## Prerequisites
+- Node.js version 6, 8 or >=10
+- A Twilio SendGrid account, [sign up for free](https://sendgrid.com/free?source=sendgrid-nodejs) to send up to 40,000 emails for the first 30 days or check out [our pricing](https://sendgrid.com/pricing?source=sendgrid-nodejs).
 
-AsyncKit provides harness for `parallel` and `serial` iterators over list of items represented by arrays or objects.
-Optionally it accepts abort function (should be synchronously return by iterator for each item), and terminates left over jobs upon an error event. For specific iteration order built-in (`ascending` and `descending`) and custom sort helpers also supported, via `asynckit.serialOrdered` method.
+## Obtain an API Key
+Grab your API Key from the [Twilio SendGrid UI](https://app.sendgrid.com/settings/api_keys).
 
-It ensures async operations to keep behavior more stable and prevent `Maximum call stack size exceeded` errors, from sync iterators.
+## Setup Environment Variables
+Do not hardcode your [Twilio SendGrid API Key](https://app.sendgrid.com/settings/api_keys) into your code. Instead, use an environment variable or some other secure means of protecting your Twilio SendGrid API Key. Following is an example of using an environment variable.
 
-| compression        |     size |
-| :----------------- | -------: |
-| asynckit.js        | 12.34 kB |
-| asynckit.min.js    |  4.11 kB |
-| asynckit.min.js.gz |  1.47 kB |
+Update the development environment with your [SENDGRID_API_KEY](https://app.sendgrid.com/settings/api_keys), for example:
 
+```bash
+echo "export SENDGRID_API_KEY='YOUR_API_KEY'" > sendgrid.env
+echo "sendgrid.env" >> .gitignore
+source ./sendgrid.env
+```
 
-## Install
+## Install Package
+The following recommended installation requires [npm](https://npmjs.org/). If you are unfamiliar with npm, see the [npm docs](https://docs.npmjs.com/). Npm comes installed with Node.js since node version 0.8.x, therefore, you likely already have it.
 
 ```sh
-$ npm install --save asynckit
+npm install --save @sendgrid/mail
 ```
 
-## Examples
+You may also use [yarn](https://yarnpkg.com/en/) to install.
 
-### Parallel Jobs
-
-Runs iterator over provided array in parallel. Stores output in the `result` array,
-on the matching positions. In unlikely event of an error from one of the jobs,
-will terminate rest of the active jobs (if abort function is provided)
-and return error along with salvaged data to the main callback function.
-
-#### Input Array
-
-```javascript
-var parallel = require('asynckit').parallel
-  , assert   = require('assert')
-  ;
-
-var source         = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , expectedResult = [ 2, 2, 8, 32, 128, 64, 16, 4 ]
-  , expectedTarget = [ 1, 1, 2, 4, 8, 16, 32, 64 ]
-  , target         = []
-  ;
-
-parallel(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-});
-
-// async job accepts one element from the array
-// and a callback function
-function asyncJob(item, cb)
-{
-  // different delays (in ms) per item
-  var delay = item * 25;
-
-  // pretend different jobs take different time to finish
-  // and not in consequential order
-  var timeoutId = setTimeout(function() {
-    target.push(item);
-    cb(null, item * 2);
-  }, delay);
-
-  // allow to cancel "leftover" jobs upon error
-  // return function, invoking of which will abort this job
-  return clearTimeout.bind(null, timeoutId);
-}
+```sh
+yarn add @sendgrid/mail
 ```
 
-More examples could be found in [test/test-parallel-array.js](test/test-parallel-array.js).
+## Verify Sender Identity
+Verify an email address or domain in the [Sender Authentication tab](https://app.sendgrid.com/settings/sender_auth/senders). Without this you will receive a `403 Forbidden` response when trying to send mail.
 
-#### Input Object
+<a name="quick-start"></a>
+# Quick Start, Hello Email
+The following is the minimum needed code to send a simple email. Use this example, and modify the `to` and `from` variables:
 
-Also it supports named jobs, listed via object.
+For more complex use cases, please see [USE_CASES.md](https://github.com/sendgrid/sendgrid-nodejs/blob/main/docs/use-cases/README.md#email-use-cases).
 
-```javascript
-var parallel = require('asynckit/parallel')
-  , assert   = require('assert')
-  ;
+```js
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const msg = {
+  to: 'test@example.com',
+  from: 'test@example.com', // Use the email address or domain you verified above
+  subject: 'Sending with Twilio SendGrid is Fun',
+  text: 'and easy to do anywhere, even with Node.js',
+  html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+};
+//ES6
+sgMail
+  .send(msg)
+  .then(() => {}, error => {
+    console.error(error);
 
-var source         = { first: 1, one: 1, four: 4, sixteen: 16, sixtyFour: 64, thirtyTwo: 32, eight: 8, two: 2 }
-  , expectedResult = { first: 2, one: 2, four: 8, sixteen: 32, sixtyFour: 128, thirtyTwo: 64, eight: 16, two: 4 }
-  , expectedTarget = [ 1, 1, 2, 4, 8, 16, 32, 64 ]
-  , expectedKeys   = [ 'first', 'one', 'two', 'four', 'eight', 'sixteen', 'thirtyTwo', 'sixtyFour' ]
-  , target         = []
-  , keys           = []
-  ;
+    if (error.response) {
+      console.error(error.response.body)
+    }
+  });
+//ES8
+(async () => {
+  try {
+    await sgMail.send(msg);
+  } catch (error) {
+    console.error(error);
 
-parallel(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-  assert.deepEqual(keys, expectedKeys);
-});
-
-// supports full value, key, callback (shortcut) interface
-function asyncJob(item, key, cb)
-{
-  // different delays (in ms) per item
-  var delay = item * 25;
-
-  // pretend different jobs take different time to finish
-  // and not in consequential order
-  var timeoutId = setTimeout(function() {
-    keys.push(key);
-    target.push(item);
-    cb(null, item * 2);
-  }, delay);
-
-  // allow to cancel "leftover" jobs upon error
-  // return function, invoking of which will abort this job
-  return clearTimeout.bind(null, timeoutId);
-}
+    if (error.response) {
+      console.error(error.response.body)
+    }
+  }
+})();
 ```
 
-More examples could be found in [test/test-parallel-object.js](test/test-parallel-object.js).
+After executing the above code, you should have an email in the inbox of the recipient. You can check the status of your email [in the UI](https://app.sendgrid.com/email_activity?). Alternatively, we can post events to a URL of your choice using our [Event Webhook](https://sendgrid.com/docs/API_Reference/Webhooks/event.html). This gives you data about the events that occur as Twilio SendGrid processes your email.
 
-### Serial Jobs
+# Troubleshooting
+Please see our [troubleshooting guide](https://github.com/sendgrid/sendgrid-nodejs/blob/main/TROUBLESHOOTING.md) for common library issues.
 
-Runs iterator over provided array sequentially. Stores output in the `result` array,
-on the matching positions. In unlikely event of an error from one of the jobs,
-will not proceed to the rest of the items in the list
-and return error along with salvaged data to the main callback function.
+# Announcements
+All updates to this library are documented in our [CHANGELOG](../../CHANGELOG.md) and [releases](https://github.com/sendgrid/sendgrid-nodejs/releases).
 
-#### Input Array
+<a name="contribute"></a>
+# How to Contribute
+We encourage contribution to our libraries (you might even score some nifty swag), please see our [CONTRIBUTING](https://github.com/sendgrid/sendgrid-nodejs/blob/HEAD/CONTRIBUTING.md) guide for details.
 
-```javascript
-var serial = require('asynckit/serial')
-  , assert = require('assert')
-  ;
+* [Feature Request](https://github.com/sendgrid/sendgrid-nodejs/blob/main/CONTRIBUTING.md#feature-request)
+* [Bug Reports](https://github.com/sendgrid/sendgrid-nodejs/blob/main/CONTRIBUTING.md#submit-a-bug-report)
+* [Improvements to the Codebase](https://github.com/sendgrid/sendgrid-nodejs/blob/main/CONTRIBUTING.md#improvements-to-the-codebase)
 
-var source         = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , expectedResult = [ 2, 2, 8, 32, 128, 64, 16, 4 ]
-  , expectedTarget = [ 0, 1, 2, 3, 4, 5, 6, 7 ]
-  , target         = []
-  ;
+# About
+@sendgrid/mail is maintained and funded by Twilio SendGrid, Inc. The names and logos for @sendgrid/mail are trademarks of Twilio SendGrid, Inc.
 
-serial(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-});
+If you need help installing or using the library, please check the [Twilio SendGrid Support Help Center](https://support.sendgrid.com).
 
-// extended interface (item, key, callback)
-// also supported for arrays
-function asyncJob(item, key, cb)
-{
-  target.push(key);
+If you've instead found a bug in the library or would like new features added, go ahead and open issues or pull requests against this repo!
 
-  // it will be automatically made async
-  // even it iterator "returns" in the same event loop
-  cb(null, item * 2);
-}
-```
-
-More examples could be found in [test/test-serial-array.js](test/test-serial-array.js).
-
-#### Input Object
-
-Also it supports named jobs, listed via object.
-
-```javascript
-var serial = require('asynckit').serial
-  , assert = require('assert')
-  ;
-
-var source         = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , expectedResult = [ 2, 2, 8, 32, 128, 64, 16, 4 ]
-  , expectedTarget = [ 0, 1, 2, 3, 4, 5, 6, 7 ]
-  , target         = []
-  ;
-
-var source         = { first: 1, one: 1, four: 4, sixteen: 16, sixtyFour: 64, thirtyTwo: 32, eight: 8, two: 2 }
-  , expectedResult = { first: 2, one: 2, four: 8, sixteen: 32, sixtyFour: 128, thirtyTwo: 64, eight: 16, two: 4 }
-  , expectedTarget = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , target         = []
-  ;
-
-
-serial(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-});
-
-// shortcut interface (item, callback)
-// works for object as well as for the arrays
-function asyncJob(item, cb)
-{
-  target.push(item);
-
-  // it will be automatically made async
-  // even it iterator "returns" in the same event loop
-  cb(null, item * 2);
-}
-```
-
-More examples could be found in [test/test-serial-object.js](test/test-serial-object.js).
-
-_Note: Since _object_ is an _unordered_ collection of properties,
-it may produce unexpected results with sequential iterations.
-Whenever order of the jobs' execution is important please use `serialOrdered` method._
-
-### Ordered Serial Iterations
-
-TBD
-
-For example [compare-property](compare-property) package.
-
-### Streaming interface
-
-TBD
-
-## Want to Know More?
-
-More examples can be found in [test folder](test/).
-
-Or open an [issue](https://github.com/alexindigo/asynckit/issues) with questions and/or suggestions.
-
-## License
-
-AsyncKit is licensed under the MIT license.
+![Twilio SendGrid Logo](https://github.com/sendgrid/sendgrid-nodejs/blob/main/twilio_sendgrid_logo.png?raw=true)

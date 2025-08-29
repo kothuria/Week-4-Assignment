@@ -1,63 +1,41 @@
 {
-  "name": "asynckit",
-  "version": "0.4.0",
-  "description": "Minimal async jobs utility library, with streams support",
-  "main": "index.js",
-  "scripts": {
-    "clean": "rimraf coverage",
-    "lint": "eslint *.js lib/*.js test/*.js",
-    "test": "istanbul cover --reporter=json tape -- 'test/test-*.js' | tap-spec",
-    "win-test": "tape test/test-*.js",
-    "browser": "browserify -t browserify-istanbul test/lib/browserify_adjustment.js test/test-*.js | obake --coverage | tap-spec",
-    "report": "istanbul report",
-    "size": "browserify index.js | size-table asynckit",
-    "debug": "tape test/test-*.js"
-  },
-  "pre-commit": [
-    "clean",
-    "lint",
-    "test",
-    "browser",
-    "report",
-    "size"
+  "name": "@sendgrid/mail",
+  "description": "Twilio SendGrid NodeJS mail service",
+  "version": "8.1.5",
+  "author": "Twilio SendGrid <help@twilio.com> (sendgrid.com)",
+  "contributors": [
+    "Kyle Partridge <kyle.partridge@sendgrid.com>",
+    "David Tomberlin <david.tomberlin@sendgrid.com>",
+    "Swift <swift@sendgrid.com>",
+    "Brandon West <brandon.west@sendgrid.com>",
+    "Scott Motte <scott.motte@sendgrid.com>",
+    "Robert Acosta <robert.acosta@sendgrid.com>",
+    "Elmer Thomas <ethomas@twilio.com>",
+    "Adam Reis <adam@reis.nz>"
   ],
+  "license": "MIT",
+  "homepage": "https://sendgrid.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alexindigo/asynckit.git"
+    "url": "git://github.com/sendgrid/sendgrid-nodejs.git"
   },
-  "keywords": [
-    "async",
-    "jobs",
-    "parallel",
-    "serial",
-    "iterator",
-    "array",
-    "object",
-    "stream",
-    "destroy",
-    "terminate",
-    "abort"
+  "main": "index.js",
+  "engines": {
+    "node": ">=12.*"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sendgrid/client": "^8.1.5",
+    "@sendgrid/helpers": "^8.0.0"
+  },
+  "tags": [
+    "http",
+    "rest",
+    "api",
+    "mail",
+    "sendgrid"
   ],
-  "author": "Alex Indigo <iam@alexindigo.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/alexindigo/asynckit/issues"
-  },
-  "homepage": "https://github.com/alexindigo/asynckit#readme",
-  "devDependencies": {
-    "browserify": "^13.0.0",
-    "browserify-istanbul": "^2.0.0",
-    "coveralls": "^2.11.9",
-    "eslint": "^2.9.0",
-    "istanbul": "^0.4.3",
-    "obake": "^0.1.2",
-    "phantomjs-prebuilt": "^2.1.7",
-    "pre-commit": "^1.1.3",
-    "reamde": "^1.1.0",
-    "rimraf": "^2.5.2",
-    "size-table": "^0.2.0",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.5.1"
-  },
-  "dependencies": {}
+  "gitHead": "2bac86884f71be3fb19f96a10c02a1fb616b81fc"
 }
