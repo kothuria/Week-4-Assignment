@@ -4,13 +4,8 @@
 	"extends": "@ljharb",
 
 	"rules": {
-		"func-style": [2, "declaration"],
-		"id-length": 0,
+		"max-statements-per-line": [2, { "max": 2 }],
+		"no-magic-numbers": 0,
 		"multiline-comment-style": 0,
-		"new-cap": [2, {
-			"capIsNewExceptions": [
-				"GetIntrinsic",
-			],
-		}],
-	},
+	}
 }
