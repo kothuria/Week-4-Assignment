@@ -1,5 +1,10 @@
-declare function getProto<O extends object>(object: O): object | null;
+declare function setToStringTag(
+    object: object & { [Symbol.toStringTag]?: unknown },
+    value: string | unknown,
+    options?: {
+        force?: boolean;
+        nonConfigurable?: boolean;
+    },
+): void;
 
-declare const x: typeof getProto | null;
-
-export = x;
+export = setToStringTag;

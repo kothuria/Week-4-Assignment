@@ -1,65 +1,82 @@
 'use strict';
 
 var test = require('tape');
+var hasToStringTag = require('has-tostringtag/shams')();
+var hasOwn = require('hasown');
 
-var getProto = require('../');
+var setToStringTag = require('../');
 
-test('getProto', function (t) {
-	t.equal(typeof getProto, 'function', 'is a function');
+test('setToStringTag', function (t) {
+	t.equal(typeof setToStringTag, 'function', 'is a function');
 
-	t.test('can get', { skip: !getProto }, function (st) {
-		if (getProto) { // TS doesn't understand tape's skip
-			var proto = { b: 2 };
-			st.equal(getProto(proto), Object.prototype, 'proto: returns the [[Prototype]]');
+	/** @type {{ [Symbol.toStringTag]?: typeof sentinel }} */
+	var obj = {};
+	var sentinel = {};
 
-			st.test('nullish value', function (s2t) {
-			// @ts-expect-error
-				s2t['throws'](function () { return getProto(undefined); }, TypeError, 'undefined is not an object');
-				// @ts-expect-error
-				s2t['throws'](function () { return getProto(null); }, TypeError, 'null is not an object');
-				s2t.end();
-			});
+	setToStringTag(obj, sentinel);
 
-			// @ts-expect-error
-			st['throws'](function () { getProto(true); }, 'throws for true');
-			// @ts-expect-error
-			st['throws'](function () { getProto(false); }, 'throws for false');
-			// @ts-expect-error
-			st['throws'](function () { getProto(42); }, 'throws for 42');
-			// @ts-expect-error
-			st['throws'](function () { getProto(NaN); }, 'throws for NaN');
-			// @ts-expect-error
-			st['throws'](function () { getProto(0); }, 'throws for +0');
-			// @ts-expect-error
-			st['throws'](function () { getProto(-0); }, 'throws for -0');
-			// @ts-expect-error
-			st['throws'](function () { getProto(Infinity); }, 'throws for ∞');
-			// @ts-expect-error
-			st['throws'](function () { getProto(-Infinity); }, 'throws for -∞');
-			// @ts-expect-error
-			st['throws'](function () { getProto(''); }, 'throws for empty string');
-			// @ts-expect-error
-			st['throws'](function () { getProto('foo'); }, 'throws for non-empty string');
-			st.equal(getProto(/a/g), RegExp.prototype);
-			st.equal(getProto(new Date()), Date.prototype);
-			st.equal(getProto(function () {}), Function.prototype);
-			st.equal(getProto([]), Array.prototype);
-			st.equal(getProto({}), Object.prototype);
+	t['throws'](
+		// @ts-expect-error
+		function () { setToStringTag(obj, sentinel, { force: 'yes' }); },
+		TypeError,
+		'throws if options is not an object'
+	);
 
-			var nullObject = { __proto__: null };
-			if ('toString' in nullObject) {
-				st.comment('no null objects in this engine');
-				st.equal(getProto(nullObject), Object.prototype, '"null" object has Object.prototype as [[Prototype]]');
-			} else {
-				st.equal(getProto(nullObject), null, 'null object has null [[Prototype]]');
-			}
-		}
+	t.test('has Symbol.toStringTag', { skip: !hasToStringTag }, function (st) {
+		st.ok(hasOwn(obj, Symbol.toStringTag), 'has toStringTag property');
+
+		st.equal(obj[Symbol.toStringTag], sentinel, 'toStringTag property is as expected');
+
+		st.equal(String(obj), '[object Object]', 'toStringTag works');
+
+		/** @type {{ [Symbol.toStringTag]?: string }} */
+		var tagged = {};
+		tagged[Symbol.toStringTag] = 'already tagged';
+		st.equal(String(tagged), '[object already tagged]', 'toStringTag works');
+
+		setToStringTag(tagged, 'new tag');
+		st.equal(String(tagged), '[object already tagged]', 'toStringTag is unchanged');
+
+		setToStringTag(tagged, 'new tag', { force: true });
+		st.equal(String(tagged), '[object new tag]', 'toStringTag is changed with force: true');
+
+		st.deepEqual(
+			Object.getOwnPropertyDescriptor(tagged, Symbol.toStringTag),
+			{
+				configurable: true,
+				enumerable: false,
+				value: 'new tag',
+				writable: false
+			},
+			'has expected property descriptor'
+		);
+
+		setToStringTag(tagged, 'new tag', { force: true, nonConfigurable: true });
+		st.deepEqual(
+			Object.getOwnPropertyDescriptor(tagged, Symbol.toStringTag),
+			{
+				configurable: false,
+				enumerable: false,
+				value: 'new tag',
+				writable: false
+			},
+			'is nonconfigurable'
+		);
 
 		st.end();
 	});
 
-	t.test('can not get', { skip: !!getProto }, function (st) {
-		st.equal(getProto, null);
+	t.test('does not have Symbol.toStringTag', { skip: hasToStringTag }, function (st) {
+		var passed = true;
+		for (var key in obj) { // eslint-disable-line no-restricted-syntax
+			if (hasOwn(obj, key)) {
+				st.fail('object has own key ' + key);
+				passed = false;
+			}
+		}
+		if (passed) {
+			st.ok(true, 'object has no enumerable own keys');
+		}
 
 		st.end();
 	});
