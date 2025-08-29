@@ -1,7 +1,25 @@
 'use strict';
 
-const mailer = require('./src/mail');
-const MailService = require('./src/classes/mail-service');
+/**
+ * Expose classes
+ */
+const Attachment = require('./attachment');
+const EmailAddress = require('./email-address');
+const Mail = require('./mail');
+const Personalization = require('./personalization');
+const Response = require('./response');
+const ResponseError = require('./response-error');
+const Statistics = require('./statistics');
 
-module.exports = mailer;
-module.exports.MailService = MailService;
+/**
+ * Export
+ */
+module.exports = {
+  Attachment,
+  EmailAddress,
+  Mail,
+  Personalization,
+  Response,
+  ResponseError,
+  Statistics,
+};
