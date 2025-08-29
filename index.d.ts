@@ -1,3 +1,3 @@
-declare const Object: ObjectConstructor;
+declare const defineProperty: false | typeof Object.defineProperty;
 
-export = Object;
+export = defineProperty;
