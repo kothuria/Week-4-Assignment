@@ -1,22 +1,21 @@
 'use strict';
 
 var test = require('tape');
-var hasSymbols = require('../');
+var hasSymbolToStringTag = require('../');
 var runSymbolTests = require('./tests');
 
 test('interface', function (t) {
-	t.equal(typeof hasSymbols, 'function', 'is a function');
-	t.equal(typeof hasSymbols(), 'boolean', 'returns a boolean');
+	t.equal(typeof hasSymbolToStringTag, 'function', 'is a function');
+	t.equal(typeof hasSymbolToStringTag(), 'boolean', 'returns a boolean');
 	t.end();
 });
 
-test('Symbols are supported', { skip: !hasSymbols() }, function (t) {
+test('Symbol.toStringTag exists', { skip: !hasSymbolToStringTag() }, function (t) {
 	runSymbolTests(t);
 	t.end();
 });
 
-test('Symbols are not supported', { skip: hasSymbols() }, function (t) {
-	t.equal(typeof Symbol, 'undefined', 'global Symbol is undefined');
-	t.equal(typeof Object.getOwnPropertySymbols, 'undefined', 'Object.getOwnPropertySymbols does not exist');
+test('Symbol.toStringTag does not exist', { skip: hasSymbolToStringTag() }, function (t) {
+	t.equal(typeof Symbol === 'undefined' ? 'undefined' : typeof Symbol.toStringTag, 'undefined', 'global Symbol.toStringTag is undefined');
 	t.end();
 });

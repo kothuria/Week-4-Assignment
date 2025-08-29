@@ -1,3 +1,3 @@
-declare function hasNativeSymbols(): boolean;
+declare function hasToStringTag(): boolean;
 
-export = hasNativeSymbols;
+export = hasToStringTag;
